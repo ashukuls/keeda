@@ -1,9 +1,8 @@
 """Database models for Keeda."""
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
-from enum import Enum
-from pydantic import Field, EmailStr
+from pydantic import Field
 from app.models.base import BaseDocument, PyObjectId
 from app.schemas.schemas import (
     ProjectContentSchema,
@@ -18,85 +17,28 @@ from app.schemas.schemas import (
 )
 
 
-# Enums for database status fields
-class ProjectStatus(str, Enum):
-    """Project lifecycle status."""
-    DRAFT = "draft"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ARCHIVED = "archived"
-
-
-class ChapterStatus(str, Enum):
-    """Chapter completion status."""
-    DRAFT = "draft"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-
-
-class SceneType(str, Enum):
-    """Type of scene for pacing and visual treatment."""
-    ACTION = "action"
-    DIALOGUE = "dialogue"
-    ESTABLISHING = "establishing"
-
-
-class PanelType(str, Enum):
-    """Panel shot type for visual composition."""
-    CLOSE_UP = "close_up"
-    MEDIUM_SHOT = "medium_shot"
-    WIDE_SHOT = "wide_shot"
-
-
-class ImageStatus(str, Enum):
-    """Image generation status."""
-    PENDING = "pending"
-    GENERATING = "generating"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-class DraftStatus(str, Enum):
-    """Draft selection status."""
-    PENDING = "pending"
-    SELECTED = "selected"
-    REJECTED = "rejected"
-
-
-class GenerationStatus(str, Enum):
-    """AI generation task status."""
-    QUEUED = "queued"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-class InstructionLevel(str, Enum):
-    """Hierarchy level for instructions."""
-    PROJECT = "project"
-    CHAPTER = "chapter"
-    SCENE = "scene"
+# Type aliases for database status fields
+ProjectStatus = Literal["draft", "in_progress", "completed", "archived"]
+ChapterStatus = Literal["draft", "in_progress", "completed"]
+SceneType = Literal["action", "dialogue", "establishing"]
+PanelType = Literal["close_up", "medium_shot", "wide_shot"]
+ImageStatus = Literal["pending", "generating", "completed", "failed"]
+DraftStatus = Literal["pending", "selected", "rejected"]
+GenerationStatus = Literal["queued", "processing", "completed", "failed"]
+InstructionLevel = Literal["project", "chapter", "scene"]
 
 
 # Database Models
 class User(BaseDocument):
     """User model with authentication."""
 
-    username: str = Field(...)
-    email: EmailStr
-    hashed_password: str
-    is_active: bool = Field(default=True)
-    is_superuser: bool = Field(default=False)
-
-    # Tracking fields
-    project_ids: List[PyObjectId] = Field(default_factory=list)
-    last_login: Optional[datetime] = None
+    username: str = Field(..., description="Unique username")
+    hashed_password: str = Field(..., description="Hashed password")
 
     class Config:
         collection_name = "users"
         indexes = [
-            {"fields": ["username"], "unique": True},
-            {"fields": ["email"], "unique": True}
+            {"fields": ["username"], "unique": True}
         ]
 
 
@@ -107,17 +49,7 @@ class Project(BaseDocument, ProjectContentSchema):
     owner_id: PyObjectId = Field(..., description="User who owns this project")
 
     # Status tracking
-    status: ProjectStatus = Field(default=ProjectStatus.DRAFT)
-
-    # Reference lists
-    chapter_ids: List[PyObjectId] = Field(default_factory=list)
-    character_ids: List[PyObjectId] = Field(default_factory=list)
-    location_ids: List[PyObjectId] = Field(default_factory=list)
-    instruction_ids: List[PyObjectId] = Field(default_factory=list)
-
-    # Statistics
-    total_chapters: int = Field(default=0)
-    total_panels: int = Field(default=0)
+    status: ProjectStatus = Field(default="draft")
 
     # Settings
     default_llm_provider: str = Field(default="openai")
@@ -139,15 +71,7 @@ class Chapter(BaseDocument, ChapterContentSchema):
     project_id: PyObjectId = Field(..., description="Parent project ID")
 
     # Status tracking
-    status: ChapterStatus = Field(default=ChapterStatus.DRAFT)
-
-    # Reference lists
-    scene_ids: List[PyObjectId] = Field(default_factory=list)
-    instruction_ids: List[PyObjectId] = Field(default_factory=list)
-
-    # Statistics
-    total_scenes: int = Field(default=0)
-    total_panels: int = Field(default=0)
+    status: ChapterStatus = Field(default="draft")
 
     class Config:
         collection_name = "chapters"
@@ -166,13 +90,8 @@ class Scene(BaseDocument, SceneContentSchema):
     chapter_id: PyObjectId = Field(..., description="Parent chapter ID")
     scene_number: int = Field(..., description="Sequential scene number within chapter")
 
-    # Reference lists
-    panel_ids: List[PyObjectId] = Field(default_factory=list)
-    character_ids: List[PyObjectId] = Field(default_factory=list)
+    # Optional references
     location_id: Optional[PyObjectId] = None
-
-    # Statistics
-    total_panels: int = Field(default=0)
 
     class Config:
         collection_name = "scenes"
@@ -193,11 +112,8 @@ class Panel(BaseDocument, PanelContentSchema):
     scene_id: PyObjectId = Field(..., description="Parent scene ID")
     panel_number: int = Field(..., description="Sequential panel number within scene")
 
-    # Reference lists
-    image_ids: List[PyObjectId] = Field(default_factory=list)
+    # Selected content
     selected_image_id: Optional[PyObjectId] = None
-    draft_ids: List[PyObjectId] = Field(default_factory=list)
-    character_ids: List[PyObjectId] = Field(default_factory=list)
     location_id: Optional[PyObjectId] = None
 
     class Config:
@@ -220,7 +136,7 @@ class Image(BaseDocument, ImagePromptSchema):
     location_id: Optional[PyObjectId] = None
 
     # Status tracking
-    status: ImageStatus = Field(default=ImageStatus.PENDING)
+    status: ImageStatus = Field(default="pending")
 
     # File information
     file_path: Optional[str] = None
@@ -257,9 +173,6 @@ class Character(BaseDocument, CharacterContentSchema):
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
 
-    # Reference images
-    reference_image_ids: List[PyObjectId] = Field(default_factory=list)
-
     class Config:
         collection_name = "characters"
         indexes = [
@@ -273,9 +186,6 @@ class Location(BaseDocument, LocationContentSchema):
 
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
-
-    # Reference images
-    reference_image_ids: List[PyObjectId] = Field(default_factory=list)
 
     class Config:
         collection_name = "locations"
@@ -294,7 +204,7 @@ class Draft(BaseDocument, DraftContentSchema):
     entity_id: PyObjectId = Field(..., description="ID of the entity this draft is for")
 
     # Status tracking
-    status: DraftStatus = Field(default=DraftStatus.PENDING)
+    status: DraftStatus = Field(default="pending")
 
     # Generation metadata
     llm_provider: Optional[str] = None
@@ -320,7 +230,7 @@ class Generation(BaseDocument):
 
     # Task information
     generation_type: str = Field(..., description="Type of generation (text, image)")
-    status: GenerationStatus = Field(default=GenerationStatus.QUEUED)
+    status: GenerationStatus = Field(default="queued")
 
     # Entity references
     entity_type: Optional[str] = None

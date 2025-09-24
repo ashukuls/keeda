@@ -69,16 +69,60 @@ Copy `backend/.env.example` to `backend/.env` and configure:
 
 ### Database Models
 
-All models are consolidated in `backend/app/models/models.py`:
+All models are consolidated in `backend/app/models/models.py`. Models contain only essential data - no derived fields or reference lists. Use MongoDB queries and aggregation pipelines to get related data:
 
-- **User**: Authentication and project ownership
-- **Project**: Main project with settings and statistics
-- **Chapter/Scene/Panel**: Content hierarchy
+- **User**: Authentication only (username, password)
+- **Project**: Core project data with owner reference and settings
+- **Chapter/Scene/Panel**: Content hierarchy with parent references only
 - **Image**: Generated/uploaded images with metadata
-- **Character/Location**: Story entities with visual references
+- **Character/Location**: Story entities (query images separately)
 - **Draft**: LLM-generated content variations
 - **Generation**: AI generation task tracking
 - **ProjectInstruction**: Hierarchical AI guidance
+
+### Data Relationships
+
+Instead of storing reference lists, use queries:
+```python
+# Get all chapters for a project
+chapters = db.chapters.find({"project_id": project_id})
+
+# Count panels in a scene
+panel_count = db.panels.count_documents({"scene_id": scene_id})
+
+# Get images for a character
+images = db.images.find({"character_id": character_id})
+```
+
+### MongoDB Aggregation Examples
+
+For complex queries with counts and joins:
+```python
+# Get project with chapter count
+pipeline = [
+    {"$match": {"_id": project_id}},
+    {"$lookup": {
+        "from": "chapters",
+        "localField": "_id",
+        "foreignField": "project_id",
+        "as": "chapters"
+    }},
+    {"$addFields": {
+        "chapter_count": {"$size": "$chapters"}
+    }}
+]
+
+# Get scene with all panels
+pipeline = [
+    {"$match": {"_id": scene_id}},
+    {"$lookup": {
+        "from": "panels",
+        "localField": "_id",
+        "foreignField": "scene_id",
+        "as": "panels"
+    }}
+]
+```
 
 ### LLM Task Management System
 
@@ -155,6 +199,7 @@ Each task should:
 2. Export in `backend/app/models/__init__.py`
 3. Create repository in `backend/app/db/repositories/`
 4. Add indexes in model Config class
+5. Use queries instead of reference lists for relationships
 
 ### Creating an LLM Task
 

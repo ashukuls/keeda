@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, computed_field
 
 
 class Settings(BaseSettings):
@@ -14,9 +14,44 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
 
-    # MongoDB
-    MONGODB_URL: str = Field(default="mongodb://localhost:27017")
+    # MongoDB Components
+    MONGO_HOST: str = Field(default="localhost")
+    MONGO_PORT: int = Field(default=27017)
+    MONGO_USERNAME: Optional[str] = Field(default=None)
+    MONGO_PASSWORD: Optional[str] = Field(default=None)
+    MONGO_AUTH_SOURCE: str = Field(default="admin")
     DATABASE_NAME: str = Field(default="keeda")
+
+    # MongoDB Admin (for scripts)
+    MONGO_ADMIN_USERNAME: Optional[str] = Field(default=None)
+    MONGO_ADMIN_PASSWORD: Optional[str] = Field(default=None)
+
+    # Test Database
+    TEST_DATABASE_NAME: str = Field(default="keeda_test")
+
+    @computed_field
+    @property
+    def MONGODB_URL(self) -> str:
+        """Build MongoDB URL from components."""
+        if self.MONGO_USERNAME and self.MONGO_PASSWORD:
+            return f"mongodb://{self.MONGO_USERNAME}:{self.MONGO_PASSWORD}@{self.MONGO_HOST}:{self.MONGO_PORT}/{self.DATABASE_NAME}?authSource={self.MONGO_AUTH_SOURCE}"
+        return f"mongodb://{self.MONGO_HOST}:{self.MONGO_PORT}/{self.DATABASE_NAME}"
+
+    @computed_field
+    @property
+    def TEST_MONGODB_URL(self) -> str:
+        """Build test MongoDB URL from components."""
+        if self.MONGO_USERNAME and self.MONGO_PASSWORD:
+            return f"mongodb://{self.MONGO_USERNAME}:{self.MONGO_PASSWORD}@{self.MONGO_HOST}:{self.MONGO_PORT}/{self.TEST_DATABASE_NAME}?authSource={self.MONGO_AUTH_SOURCE}"
+        return f"mongodb://{self.MONGO_HOST}:{self.MONGO_PORT}/{self.TEST_DATABASE_NAME}"
+
+    @computed_field
+    @property
+    def MONGO_ADMIN_URL(self) -> str:
+        """Build admin MongoDB URL for scripts."""
+        if self.MONGO_ADMIN_USERNAME and self.MONGO_ADMIN_PASSWORD:
+            return f"mongodb://{self.MONGO_ADMIN_USERNAME}:{self.MONGO_ADMIN_PASSWORD}@{self.MONGO_HOST}:{self.MONGO_PORT}/?authSource={self.MONGO_AUTH_SOURCE}"
+        return f"mongodb://{self.MONGO_HOST}:{self.MONGO_PORT}/"
 
     # Redis
     REDIS_URL: str = Field(default="redis://localhost:6379")
@@ -30,6 +65,14 @@ class Settings(BaseSettings):
     # AI Services
     OPENAI_API_KEY: Optional[str] = Field(default=None)
     ANTHROPIC_API_KEY: Optional[str] = Field(default=None)
+
+    # Ollama Configuration
+    OLLAMA_BASE_URL: Optional[str] = Field(default="http://localhost:11434")
+    OLLAMA_MODEL: Optional[str] = Field(default="llama3.2")
+
+    # Local Image Generation
+    IMAGE_API_BASE_URL: Optional[str] = Field(default="http://localhost:7860")
+    IMAGE_API_TYPE: Optional[str] = Field(default="automatic1111")
 
     # File Storage
     IMAGE_STORAGE_PATH: str = Field(default="./data/images")

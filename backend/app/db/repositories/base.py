@@ -23,6 +23,7 @@ class BaseRepository(Generic[T]):
         self.model = model
         self.collection_name = model.Config.collection_name
         self._collection: Optional[Collection] = None
+        self._ensure_indexes()
 
     @property
     def collection(self) -> Collection:
@@ -30,6 +31,26 @@ class BaseRepository(Generic[T]):
         if self._collection is None:
             self._collection = get_collection(self.collection_name)
         return self._collection
+
+    def _ensure_indexes(self):
+        """Ensure indexes are created for the collection."""
+        if hasattr(self.model.Config, 'indexes'):
+            for index_config in self.model.Config.indexes:
+                fields = index_config.get('fields')
+                unique = index_config.get('unique', False)
+
+                if isinstance(fields, list):
+                    # Compound index
+                    index_spec = [(field, 1) if isinstance(field, str) else field for field in fields]
+                else:
+                    # Simple index
+                    index_spec = [(fields, 1)]
+
+                try:
+                    self.collection.create_index(index_spec, unique=unique)
+                    logger.debug(f"Created index on {self.collection_name}: {index_spec}")
+                except Exception as e:
+                    logger.debug(f"Index might already exist on {self.collection_name}: {e}")
 
     async def create(self, obj: T) -> T:
         """Create a new document."""
@@ -39,7 +60,8 @@ class BaseRepository(Generic[T]):
             obj.updated_at = datetime.utcnow()
 
             # Convert to dict and insert
-            doc = obj.dict(by_alias=True, exclude_unset=True)
+            # Use exclude_none instead of exclude_unset to include defaults
+            doc = obj.dict(by_alias=True, exclude_none=True)
             result = self.collection.insert_one(doc)
             obj.id = result.inserted_id
 
@@ -166,7 +188,7 @@ class BaseRepository(Generic[T]):
             for obj in objects:
                 obj.created_at = now
                 obj.updated_at = now
-                docs.append(obj.dict(by_alias=True, exclude_unset=True))
+                docs.append(obj.dict(by_alias=True, exclude_none=True))
 
             result = self.collection.insert_many(docs)
 
