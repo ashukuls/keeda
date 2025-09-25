@@ -30,11 +30,7 @@ class OpenAIService(BaseLLMService):
 
     # Model context windows
     MODEL_CONTEXT_WINDOWS = {
-        "gpt-4": 8192,
-        "gpt-4-32k": 32768,
-        "gpt-4-turbo-preview": 128000,
-        "gpt-3.5-turbo": 4096,
-        "gpt-3.5-turbo-16k": 16384,
+        "gpt-5-nano": 400000,
     }
 
     def __init__(self, api_key: Optional[str] = None, config: Optional[Dict[str, Any]] = None):

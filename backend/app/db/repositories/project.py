@@ -15,7 +15,7 @@ class ProjectRepository(BaseRepository[Project]):
     async def get_user_projects(self, user_id: str, skip: int = 0, limit: int = 20) -> List[Project]:
         """Get all projects for a user."""
         return await self.list(
-            filter={"owner_id": ObjectId(user_id)},
+            filter={"user_id": ObjectId(user_id)},
             skip=skip,
             limit=limit,
             sort=[("created_at", -1)]

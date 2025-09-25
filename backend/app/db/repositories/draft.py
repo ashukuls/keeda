@@ -9,8 +9,8 @@ from app.models.models import Draft, DraftStatus
 class DraftRepository(BaseRepository[Draft]):
     """Repository for draft operations"""
 
-    model = Draft
-    collection_name = "drafts"
+    def __init__(self):
+        super().__init__(Draft)
 
     async def find_by_project(
         self,

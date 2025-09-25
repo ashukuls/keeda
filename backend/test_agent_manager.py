@@ -1,27 +1,27 @@
-"""Test script for AgentManager with a small project."""
+"""Test script for AgentManager with generation modes."""
 
 import asyncio
-import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from bson import ObjectId
 
-from app.services.agent_manager_simple import SimpleAgentManager
+from app.services.agent_manager import AgentManager
+from app.schemas.schemas import GenerationMode
 from app.core.config import settings
 
 # Load environment variables
 load_dotenv()
 
 
-async def test_agent_workflow():
-    """Test the complete agent workflow with a small story."""
+async def test_direct_mode_workflow():
+    """Test the complete agent workflow in direct mode (no review)."""
 
     # Connect to MongoDB
     client = MongoClient(settings.MONGODB_URL)
     db = client[settings.DATABASE_NAME]
 
-    # Initialize SimpleAgentManager
-    manager = SimpleAgentManager(db)
+    # Initialize AgentManager
+    manager = AgentManager(db)
 
     # Test user and story
     test_user_id = str(ObjectId())
@@ -31,139 +31,187 @@ async def test_agent_workflow():
     can't remember who killed them.
     """
 
+    # User instructions for direct mode
+    user_instructions = "auto generate everything directly"
+
     print("="*60)
-    print("Testing Agent Manager Workflow")
+    print("Testing Agent Manager - DIRECT MODE")
     print("="*60)
+    print("Instructions:", user_instructions)
+    print("This will generate everything without review")
+    print()
 
     try:
         # Step 1: Generate project summary
-        print("\n1. Generating project summary...")
-        project_id = await manager.generate_project_summary(
+        print("1. Generating project summary...")
+        result = await manager.generate_project_summary(
             user_id=test_user_id,
-            user_input=test_story.strip()
+            user_input=test_story.strip(),
+            user_instructions=user_instructions,
+            mode=GenerationMode.DIRECT  # Explicit direct mode
         )
-        print(f"   ✓ Created project: {project_id}")
 
-        # Fetch and display project
-        project = db.projects.find_one({"_id": ObjectId(project_id)})
-        print(f"   Title: {project['title']}")
-        print(f"   Genre: {project['genre']}")
-        print(f"   Description preview: {project['description'][:200]}...")
+        project_id = result["project_id"]
+        print(f"   ✓ Created project directly: {project_id}")
+        print(f"   Title: {result['data']['title']}")
+        print(f"   Genre: {result['data']['genre']}")
 
         # Step 2: Generate characters
         print("\n2. Generating characters...")
-        character_ids = await manager.generate_characters(
+        result = await manager.generate_characters(
             project_id=project_id,
-            num_characters=3  # Small test with 3 characters
+            num_characters=3
         )
-        print(f"   ✓ Created {len(character_ids)} characters")
 
-        # Display characters
-        for char_id in character_ids:
-            char = db.characters.find_one({"_id": ObjectId(char_id)})
+        character_ids = result["character_ids"]
+        print(f"   ✓ Created {len(character_ids)} characters directly")
+        for char in result['data']['characters']:
             print(f"   - {char['name']} ({char['role']})")
 
         # Step 3: Generate chapters
         print("\n3. Generating chapters...")
-        chapter_ids = await manager.generate_chapters(
+        result = await manager.generate_chapters(
             project_id=project_id,
-            num_chapters=3  # Small test with 3 chapters
+            num_chapters=2
         )
-        print(f"   ✓ Created {len(chapter_ids)} chapters")
 
-        # Display chapters
-        for i, chapter_id in enumerate(chapter_ids, 1):
-            chapter = db.chapters.find_one({"_id": ObjectId(chapter_id)})
+        chapter_ids = result["chapter_ids"]
+        print(f"   ✓ Created {len(chapter_ids)} chapters directly")
+        for i, chapter in enumerate(result['data']['chapters'], 1):
             print(f"   Chapter {i}: {chapter['title']}")
 
-        # Step 4: Generate scenes for first chapter only
+        # Step 4: Generate scenes for first chapter
         if chapter_ids:
             first_chapter_id = chapter_ids[0]
             print(f"\n4. Generating scenes for first chapter...")
-            scene_ids = await manager.generate_scenes(
+            result = await manager.generate_scenes(
                 chapter_id=first_chapter_id,
-                num_scenes=2  # Small test with 2 scenes
+                num_scenes=2
             )
-            print(f"   ✓ Created {len(scene_ids)} scenes")
 
-            # Display scenes
-            for i, scene_id in enumerate(scene_ids, 1):
-                scene = db.scenes.find_one({"_id": ObjectId(scene_id)})
-                print(f"   Scene {i}: {scene['title']}")
+            scene_ids = result["scene_ids"]
+            print(f"   ✓ Created {len(scene_ids)} scenes directly")
+            for scene in result['data']['scenes']:
+                print(f"   Scene {scene['number']}: {scene['title']}")
 
-            # Step 5: Generate panels for first scene only
+            # Step 5: Generate panels for first scene
             if scene_ids:
                 first_scene_id = scene_ids[0]
                 print(f"\n5. Generating panels for first scene...")
-                panel_ids = await manager.generate_panels(
+                result = await manager.generate_panels(
                     scene_id=first_scene_id,
-                    num_panels=3  # Small test with 3 panels
+                    num_panels=3
                 )
-                print(f"   ✓ Created {len(panel_ids)} panels")
 
-                # Display panels
-                for i, panel_id in enumerate(panel_ids, 1):
-                    panel = db.panels.find_one({"_id": ObjectId(panel_id)})
-                    print(f"   Panel {i} ({panel['shot_type']})")
-                    if panel.get('dialogue'):
-                        print(f"     Dialogue: {panel['dialogue'][:50]}...")
+                panel_ids = result["panel_ids"]
+                print(f"   ✓ Created {len(panel_ids)} panels directly")
+                for panel in result['data']['panels']:
+                    print(f"   Panel {panel['number']} ({panel['shot_type']})")
 
-                # Step 6: Generate visual prompt for first panel
-                if panel_ids:
-                    first_panel_id = panel_ids[0]
-                    print(f"\n6. Generating visual prompt for first panel...")
-                    prompt = await manager.generate_visual_prompt(
-                        target_type="panel",
-                        target_id=first_panel_id
-                    )
-                    print(f"   ✓ Generated visual prompt")
-                    print(f"   Prompt preview: {prompt['prompt'][:150]}...")
-
-        # Step 7: Test character profile enhancement
-        if character_ids:
-            first_char_id = character_ids[0]
-            first_char = db.characters.find_one({"_id": ObjectId(first_char_id)})
-            print(f"\n7. Generating detailed profile for {first_char['name']}...")
-            biography = await manager.generate_character_profile(first_char_id)
-            print(f"   ✓ Generated character profile")
-            print(f"   Biography preview: {biography[:200]}...")
+        # Get project status
+        print("\n6. Project Status:")
+        status = await manager.get_project_status(project_id)
+        print(f"   Title: {status['project']['title']}")
+        print(f"   Characters: {status['statistics']['characters']}")
+        print(f"   Chapters: {status['statistics']['chapters']}")
+        print(f"   Pending Drafts: {status['statistics']['pending_drafts']}")
 
         print("\n" + "="*60)
-        print("✅ Workflow test completed successfully!")
+        print("✅ Direct mode workflow completed successfully!")
+        print("All content saved directly to database without review")
         print("="*60)
 
-        # Cleanup - delete test data
-        print("\nCleaning up test data...")
+    except Exception as e:
+        print(f"\n❌ Error during workflow test: {e}")
+        import traceback
+        traceback.print_exc()
 
-        # Delete panels
-        if 'panel_ids' in locals():
-            for panel_id in panel_ids:
-                db.panels.delete_one({"_id": ObjectId(panel_id)})
+    finally:
+        # Close MongoDB connection
+        client.close()
 
-        # Delete scenes
-        if 'scene_ids' in locals():
-            for scene_id in scene_ids:
-                db.scenes.delete_one({"_id": ObjectId(scene_id)})
 
-        # Delete chapters
-        if 'chapter_ids' in locals():
-            for chapter_id in chapter_ids:
-                db.chapters.delete_one({"_id": ObjectId(chapter_id)})
+async def test_review_mode_workflow():
+    """Test the workflow in review mode (with drafts)."""
 
-        # Delete characters
-        if 'character_ids' in locals():
-            for char_id in character_ids:
-                db.characters.delete_one({"_id": ObjectId(char_id)})
+    # Connect to MongoDB
+    client = MongoClient(settings.MONGODB_URL)
+    db = client[settings.DATABASE_NAME]
 
-        # Delete project
-        db.projects.delete_one({"_id": ObjectId(project_id)})
+    # Initialize AgentManager
+    manager = AgentManager(db)
 
-        # Delete drafts
-        drafts = db.drafts.find({"project_id": ObjectId(project_id)})
-        for draft in drafts:
-            db.drafts.delete_one({"_id": draft["_id"]})
+    # Test user and story
+    test_user_id = str(ObjectId())
+    test_story = "A space detective story"
 
-        print("   ✓ Test data cleaned up")
+    # User instructions for review mode
+    user_instructions = "review characters and panels before saving"
+
+    print("\n" + "="*60)
+    print("Testing Agent Manager - REVIEW MODE")
+    print("="*60)
+    print("Instructions:", user_instructions)
+    print("Characters and panels will require review")
+    print()
+
+    try:
+        # Step 1: Generate project summary
+        print("1. Generating project summary...")
+        result = await manager.generate_project_summary(
+            user_id=test_user_id,
+            user_input=test_story.strip(),
+            user_instructions=user_instructions
+        )
+
+        if result["mode"] == "review":
+            draft_id = result["draft_id"]
+            print(f"   ✓ Created draft: {draft_id}")
+            print(f"   Title: {result['data']['title']}")
+            print(f"   Message: {result['message']}")
+
+            # Approve the draft
+            print("   Approving project draft...")
+            project_id = await manager.approve_project_draft(draft_id)
+            print(f"   ✓ Project approved: {project_id}")
+        else:
+            project_id = result["project_id"]
+            print(f"   ✓ Created project directly: {project_id}")
+
+        # Step 2: Generate characters (should be in review mode)
+        print("\n2. Generating characters...")
+        result = await manager.generate_characters(
+            project_id=project_id,
+            num_characters=2
+        )
+
+        if result["mode"] == "review":
+            draft_id = result["draft_id"]
+            print(f"   ✓ Created draft: {draft_id}")
+            print(f"   Message: {result['message']}")
+
+            # Provide feedback and regenerate
+            print("   Providing feedback...")
+            feedback_result = await manager.update_draft(
+                draft_id=draft_id,
+                feedback="Make the antagonist more mysterious",
+                regenerate=True
+            )
+
+            new_draft_id = feedback_result["draft_id"]
+            print(f"   ✓ Regenerated with feedback: {new_draft_id}")
+
+            # Approve the new draft
+            print("   Approving character draft...")
+            character_ids = await manager.approve_character_draft(new_draft_id)
+            print(f"   ✓ Characters approved: {len(character_ids)} created")
+        else:
+            print(f"   ✓ Created {len(result['character_ids'])} characters directly")
+
+        print("\n" + "="*60)
+        print("✅ Review mode workflow completed successfully!")
+        print("Drafts were created and reviewed before saving")
+        print("="*60)
 
     except Exception as e:
         print(f"\n❌ Error during workflow test: {e}")
@@ -176,14 +224,29 @@ async def test_agent_workflow():
 
 
 async def main():
-    """Run the test."""
+    """Run the tests."""
     # Check for OpenAI API key
     if not settings.OPENAI_API_KEY:
         print("❌ Error: OPENAI_API_KEY not set in environment")
         print("Please set it in your .env file or environment variables")
         return
 
-    await test_agent_workflow()
+    print("Select test mode:")
+    print("1. Direct Mode (no review)")
+    print("2. Review Mode (with drafts)")
+    print("3. Both")
+
+    choice = input("\nEnter choice (1/2/3): ").strip()
+
+    if choice == "1":
+        await test_direct_mode_workflow()
+    elif choice == "2":
+        await test_review_mode_workflow()
+    elif choice == "3":
+        await test_direct_mode_workflow()
+        await test_review_mode_workflow()
+    else:
+        print("Invalid choice")
 
 
 if __name__ == "__main__":

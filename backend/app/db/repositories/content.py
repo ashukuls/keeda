@@ -1,9 +1,22 @@
-"""Content repository for chapters, scenes, and panels."""
+"""Content repository for chapters, scenes, panels, and characters."""
 
 from typing import Optional, List, Dict, Any
 from bson import ObjectId
 from app.db.repositories.base import BaseRepository
-from app.models import Chapter, Scene, Panel
+from app.models import Chapter, Scene, Panel, Character
+
+
+class CharacterRepository(BaseRepository[Character]):
+    """Repository for character operations."""
+
+    def __init__(self):
+        super().__init__(Character)
+
+    async def get_project_characters(self, project_id: str) -> List[Character]:
+        """Get all characters for a project."""
+        return await self.list(
+            filter={"project_id": ObjectId(project_id)}
+        )
 
 
 class ChapterRepository(BaseRepository[Chapter]):

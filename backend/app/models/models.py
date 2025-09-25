@@ -4,17 +4,7 @@ from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
 from pydantic import Field
 from app.models.base import BaseDocument, PyObjectId
-from app.schemas.schemas import (
-    ProjectContentSchema,
-    ChapterContentSchema,
-    SceneContentSchema,
-    PanelContentSchema,
-    CharacterContentSchema,
-    LocationContentSchema,
-    DraftContentSchema,
-    ImagePromptSchema,
-    InstructionContentSchema,
-)
+from app.schemas.schemas import ProjectGenerationSettings
 
 
 # Type aliases for database status fields
@@ -42,11 +32,20 @@ class User(BaseDocument):
         ]
 
 
-class Project(BaseDocument, ProjectContentSchema):
+class Project(BaseDocument):
     """Project model for graphic novels."""
 
     # Database references
-    owner_id: PyObjectId = Field(..., description="User who owns this project")
+    user_id: PyObjectId = Field(..., description="User who owns this project")
+
+    # Core content fields
+    title: str = Field(..., description="Project title")
+    genre: str = Field(..., description="Project genre")
+    description: str = Field(..., description="Rich description with themes, plot, etc.")
+
+    # User context
+    user_input: str = Field(..., description="Original user story idea")
+    generation_settings: Optional[ProjectGenerationSettings] = None
 
     # Status tracking
     status: ProjectStatus = Field(default="draft")
@@ -58,17 +57,22 @@ class Project(BaseDocument, ProjectContentSchema):
     class Config:
         collection_name = "projects"
         indexes = [
-            {"fields": ["owner_id"]},
+            {"fields": ["user_id"]},
             {"fields": ["status"]},
             {"fields": ["created_at", "-1"]}
         ]
 
 
-class Chapter(BaseDocument, ChapterContentSchema):
+class Chapter(BaseDocument):
     """Chapter model."""
 
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
+
+    # Content fields
+    chapter_number: int = Field(..., description="Sequential chapter number")
+    title: str = Field(..., description="Chapter title")
+    summary: str = Field(..., description="Chapter summary")
 
     # Status tracking
     status: ChapterStatus = Field(default="draft")
@@ -107,14 +111,20 @@ class Scene(BaseDocument):
         ]
 
 
-class Panel(BaseDocument, PanelContentSchema):
+class Panel(BaseDocument):
     """Panel model."""
 
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
     chapter_id: PyObjectId = Field(..., description="Parent chapter ID")
     scene_id: PyObjectId = Field(..., description="Parent scene ID")
+
+    # Content fields
     panel_number: int = Field(..., description="Sequential panel number within scene")
+    shot_type: str = Field(..., description="Shot type: close_up, medium, wide, establishing")
+    description: str = Field(..., description="Visual description")
+    dialogue: Optional[str] = Field(None, description="Character dialogue")
+    narration: Optional[str] = Field(None, description="Narrative text")
 
     # Selected content
     selected_image_id: Optional[PyObjectId] = None
@@ -130,7 +140,7 @@ class Panel(BaseDocument, PanelContentSchema):
         ]
 
 
-class Image(BaseDocument, ImagePromptSchema):
+class Image(BaseDocument):
     """Image model."""
 
     # Database references
@@ -171,11 +181,17 @@ class Image(BaseDocument, ImagePromptSchema):
         ]
 
 
-class Character(BaseDocument, CharacterContentSchema):
+class Character(BaseDocument):
     """Character model."""
 
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
+
+    # Content fields
+    name: str = Field(..., description="Character name")
+    role: str = Field(..., description="Role: protagonist/antagonist/supporting")
+    description: str = Field(..., description="Character description with personality, relationships")
+    biography: Optional[str] = Field(None, description="Detailed character profile")
 
     class Config:
         collection_name = "characters"
@@ -185,11 +201,15 @@ class Character(BaseDocument, CharacterContentSchema):
         ]
 
 
-class Location(BaseDocument, LocationContentSchema):
+class Location(BaseDocument):
     """Location model."""
 
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
+
+    # Content fields
+    name: str = Field(..., description="Location name")
+    description: str = Field(..., description="Location description")
 
     class Config:
         collection_name = "locations"
@@ -199,13 +219,18 @@ class Location(BaseDocument, LocationContentSchema):
         ]
 
 
-class Draft(BaseDocument, DraftContentSchema):
+class Draft(BaseDocument):
     """Draft model for content variants."""
 
     # Database references
-    project_id: PyObjectId = Field(..., description="Parent project ID")
-    entity_type: str = Field(..., description="Type of entity (scene, panel, character)")
-    entity_id: PyObjectId = Field(..., description="ID of the entity this draft is for")
+    project_id: Optional[PyObjectId] = Field(None, description="Parent project ID (optional for project drafts)")
+    entity_type: str = Field(..., description="Type of entity (project_summary, character_list, scene_list, etc)")
+    entity_id: Optional[PyObjectId] = Field(None, description="ID of the entity this draft is for")
+
+    # Content
+    type: str = Field(..., description="Draft type (e.g. project_summary, character_list)")
+    content: Dict[str, Any] = Field(..., description="Draft content")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     # Status tracking
     status: DraftStatus = Field(default="pending")
@@ -268,7 +293,7 @@ class Generation(BaseDocument):
         ]
 
 
-class ProjectInstruction(BaseDocument, InstructionContentSchema):
+class ProjectInstruction(BaseDocument):
     """Project instruction model."""
 
     # Database references

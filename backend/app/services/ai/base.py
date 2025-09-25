@@ -9,29 +9,16 @@ logger = logging.getLogger(__name__)
 
 class LLMProvider(str, Enum):
     OPENAI = "openai"
-    ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
-    CUSTOM = "custom"
 
 
 class LLMModel(str, Enum):
     # OpenAI Models
-    GPT_4 = "gpt-4"
-    GPT_4_TURBO = "gpt-4-turbo-preview"
-    GPT_35_TURBO = "gpt-3.5-turbo"
-    GPT_35_TURBO_16K = "gpt-3.5-turbo-16k"
+    GPT_5_NANO = "gpt-5-nano"
 
-    # Anthropic Models
-    CLAUDE_3_OPUS = "claude-3-opus-20240229"
-    CLAUDE_3_SONNET = "claude-3-sonnet-20240229"
-    CLAUDE_3_HAIKU = "claude-3-haiku-20240307"
-    CLAUDE_2 = "claude-2.1"
 
     # Ollama Models (local)
-    LLAMA2 = "llama2"
-    MISTRAL = "mistral"
-    CODELLAMA = "codellama"
-    MIXTRAL = "mixtral"
+    QWEN3 = "qwen3:latest"
 
 
 class GenerationRequest(BaseModel):

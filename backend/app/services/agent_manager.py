@@ -66,6 +66,8 @@ class AgentManager:
     def __init__(self, db):
         """Initialize with database connection."""
         self.db = db
+
+        # Initialize repositories
         self.project_repo = ProjectRepository()
         self.character_repo = CharacterRepository()
         self.chapter_repo = ChapterRepository()
@@ -73,7 +75,7 @@ class AgentManager:
         self.panel_repo = PanelRepository()
         self.draft_repo = DraftRepository()
 
-        # Initialize repositories with database
+        # Set database collections directly
         self.project_repo._collection = db.projects
         self.character_repo._collection = db.characters
         self.chapter_repo._collection = db.chapters
@@ -113,7 +115,7 @@ class AgentManager:
                 description=summary.description,
                 user_input=user_input,
                 generation_settings=settings,
-                status="active"
+                status="draft"
             )
             created_project = await self.project_repo.create(project)
 
@@ -126,6 +128,8 @@ class AgentManager:
             # Save to drafts for review
             draft = Draft(
                 project_id=None,  # No project yet
+                entity_type="project_summary",
+                entity_id=None,
                 type="project_summary",
                 content=summary.dict(),
                 metadata={
@@ -161,14 +165,15 @@ class AgentManager:
             description=content["description"],
             user_input=metadata.get("user_input", ""),
             generation_settings=parse_user_instructions(metadata.get("user_instructions", "")),
-            status="active"
+            status="draft"
         )
         created_project = await self.project_repo.create(project)
 
         # Update draft status
-        draft.status = "approved"
-        draft.project_id = created_project.id
-        await self.draft_repo.update(draft_id, draft)
+        await self.draft_repo.update(draft_id, {
+            "status": "selected",
+            "project_id": created_project.id
+        })
 
         return str(created_project.id)
 
@@ -229,6 +234,8 @@ class AgentManager:
             # Save to draft for review
             draft = Draft(
                 project_id=ObjectId(project_id),
+                entity_type="character_list",
+                entity_id=None,
                 type="character_list",
                 content=character_list.dict(),
                 metadata={"num_characters": num_characters},
@@ -262,8 +269,7 @@ class AgentManager:
             character_ids.append(str(created.id))
 
         # Update draft status
-        draft.status = "approved"
-        await self.draft_repo.update(draft_id, draft)
+        await self.draft_repo.update(draft_id, {"status": "selected"})
 
         return character_ids
 
@@ -335,6 +341,8 @@ class AgentManager:
             # Save to draft for review
             draft = Draft(
                 project_id=ObjectId(project_id),
+                entity_type="chapter_list",
+                entity_id=None,
                 type="chapter_list",
                 content=chapter_list.dict(),
                 metadata={"num_chapters": num_chapters},
@@ -361,8 +369,9 @@ class AgentManager:
         if not chapter:
             raise ValueError(f"Chapter {chapter_id} not found")
 
-        project = await self.project_repo.get(str(chapter.project_id))
-        characters = await self.character_repo.get_project_characters(str(chapter.project_id))
+        project_id = str(chapter.project_id)
+        project = await self.project_repo.get(project_id)
+        characters = await self.character_repo.get_project_characters(project_id)
 
         # Determine mode
         settings = project.generation_settings or ProjectGenerationSettings()
@@ -370,7 +379,7 @@ class AgentManager:
 
         # Create context
         context = AgentContext(
-            project_id=str(chapter.project_id),
+            project_id=project_id,
             user_id=str(project.user_id),
             data={
                 "project_summary": {
@@ -405,6 +414,7 @@ class AgentManager:
             scene_ids = []
             for scene_data in scene_list.scenes:
                 scene = Scene(
+                    project_id=ObjectId(project_id),
                     chapter_id=ObjectId(chapter_id),
                     scene_number=scene_data.number,
                     title=scene_data.title,
@@ -422,6 +432,8 @@ class AgentManager:
             # Save to draft for review
             draft = Draft(
                 project_id=chapter.project_id,
+                entity_type="scene_list",
+                entity_id=ObjectId(chapter_id),
                 type="scene_list",
                 content=scene_list.dict(),
                 metadata={
@@ -452,8 +464,9 @@ class AgentManager:
             raise ValueError(f"Scene {scene_id} not found")
 
         chapter = await self.chapter_repo.get(str(scene.chapter_id))
-        project = await self.project_repo.get(str(chapter.project_id))
-        characters = await self.character_repo.get_project_characters(str(chapter.project_id))
+        project_id = str(chapter.project_id)
+        project = await self.project_repo.get(project_id)
+        characters = await self.character_repo.get_project_characters(project_id)
 
         # Determine mode
         settings = project.generation_settings or ProjectGenerationSettings()
@@ -461,7 +474,7 @@ class AgentManager:
 
         # Create context
         context = AgentContext(
-            project_id=str(chapter.project_id),
+            project_id=project_id,
             user_id=str(project.user_id),
             data={
                 "character_list": {
@@ -496,6 +509,8 @@ class AgentManager:
             panel_ids = []
             for panel_data in panel_list.panels:
                 panel = Panel(
+                    project_id=ObjectId(chapter.project_id),
+                    chapter_id=ObjectId(scene.chapter_id),
                     scene_id=ObjectId(scene_id),
                     panel_number=panel_data.number,
                     shot_type=panel_data.shot_type,
@@ -515,6 +530,8 @@ class AgentManager:
             # Save to draft for review
             draft = Draft(
                 project_id=chapter.project_id,
+                entity_type="panel_list",
+                entity_id=ObjectId(scene_id),
                 type="panel_list",
                 content=panel_list.dict(),
                 metadata={
@@ -544,13 +561,14 @@ class AgentManager:
             raise ValueError(f"Draft {draft_id} not found")
 
         if regenerate:
-            # Store feedback and regenerate
-            draft.feedback = draft.feedback or []
-            draft.feedback.append({
-                "timestamp": datetime.now(timezone.utc),
+            # Store feedback in metadata and regenerate
+            if "feedback" not in draft.metadata:
+                draft.metadata["feedback"] = []
+            draft.metadata["feedback"].append({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "message": feedback
             })
-            await self.draft_repo.update(draft_id, draft)
+            await self.draft_repo.update(draft_id, {"metadata": draft.metadata})
 
             # Regenerate based on type
             if draft.type == "character_list":
@@ -567,8 +585,7 @@ class AgentManager:
                 "timestamp": datetime.now(timezone.utc),
                 "message": feedback
             })
-            draft.status = "reviewed"
-            await self.draft_repo.update(draft_id, draft)
+            await self.draft_repo.update(draft_id, {"status": "selected"})
 
             return {
                 "message": "Draft updated with feedback",
@@ -607,11 +624,12 @@ class AgentManager:
         # Create new draft
         new_draft = Draft(
             project_id=draft.project_id,
+            entity_type="character_list",
+            entity_id=None,
             type="character_list",
             content=character_list.dict(),
             metadata=draft.metadata,
-            status="pending",
-            parent_draft_id=draft.id  # Link to parent
+            status="pending"
         )
         created_draft = await self.draft_repo.create(new_draft)
 

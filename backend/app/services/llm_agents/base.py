@@ -14,7 +14,7 @@ T = TypeVar('T', bound=BaseModel)
 
 class AgentConfig(BaseModel):
     """Agent configuration"""
-    model: str = "gpt-3.5-turbo"
+    model: str = "gpt-5-mini"
 
 
 class AgentParameters(BaseModel):
