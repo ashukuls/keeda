@@ -11,7 +11,6 @@ from app.schemas.schemas import (
     SceneListItem,
     PanelList,
     PanelListItem,
-    DialogueItem,
 
     # Detail enhancement schemas
     CharacterProfile,
@@ -29,7 +28,6 @@ __all__ = [
     "SceneListItem",
     "PanelList",
     "PanelListItem",
-    "DialogueItem",
     "CharacterProfile",
     "SceneSummary",
     "ImagePrompt",

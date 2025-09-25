@@ -82,13 +82,17 @@ class Chapter(BaseDocument, ChapterContentSchema):
         ]
 
 
-class Scene(BaseDocument, SceneContentSchema):
+class Scene(BaseDocument):
     """Scene model."""
 
     # Database references
     project_id: PyObjectId = Field(..., description="Parent project ID")
     chapter_id: PyObjectId = Field(..., description="Parent chapter ID")
+
+    # Content fields
     scene_number: int = Field(..., description="Sequential scene number within chapter")
+    title: str = Field(..., description="Scene title")
+    description: str = Field(..., description="Scene description with setting, mood, events")
 
     # Optional references
     location_id: Optional[PyObjectId] = None

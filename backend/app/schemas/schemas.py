@@ -1,11 +1,12 @@
-"""Schemas for LLM agent outputs.
+"""Schemas for LLM agent outputs and content models.
 
 Minimal schemas with essential fields only.
 Rich information is stored in text fields like summary/description.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Union
 from pydantic import BaseModel
+from enum import Enum
 
 
 # ============================================================================
@@ -88,3 +89,48 @@ class ImagePrompt(BaseModel):
     """Output from VisualPromptAgent"""
     prompt: str  # Complete prompt for image generation
     negative_prompt: Optional[str] = None
+
+
+# ============================================================================
+# Agent Types and Generation Settings
+# ============================================================================
+
+class AgentType(str, Enum):
+    """Types of agents in the system."""
+    # List generation agents
+    PROJECT_SUMMARY = "project_summary"
+    CHARACTER_LIST = "character_list"
+    CHAPTER_LIST = "chapter_list"
+    SCENE_LIST = "scene_list"
+    PANEL_LIST = "panel_list"
+
+    # Detail enhancement agents
+    CHARACTER_PROFILE = "character_profile"
+    SCENE_SUMMARY = "scene_summary"
+    VISUAL_PROMPT = "visual_prompt"
+
+
+class GenerationMode(str, Enum):
+    """Generation modes for agents."""
+    DIRECT = "direct"  # Save directly to database
+    REVIEW = "review"  # Save to drafts first, require approval
+
+
+class ProjectGenerationSettings(BaseModel):
+    """Per-project settings for agent generation."""
+    user_instructions: str = ""  # Natural language instructions from user
+    agent_modes: Dict[str, GenerationMode] = {}  # Mode per agent type (using AgentType.value as key)
+
+    # Optional specific settings
+    num_characters: Optional[int] = 3
+    num_chapters: Optional[int] = 2
+    num_scenes_per_chapter: Optional[int] = 2
+    num_panels_per_scene: Optional[int] = 3
+
+    visual_style: Optional[str] = "comic book art"
+
+    def get_mode(self, agent_type: Union[str, AgentType]) -> GenerationMode:
+        """Get generation mode for specific agent type."""
+        # Handle both string and AgentType enum
+        key = agent_type.value if hasattr(agent_type, 'value') else agent_type
+        return self.agent_modes.get(key, GenerationMode.REVIEW)

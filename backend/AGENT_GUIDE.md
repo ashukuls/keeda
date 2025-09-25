@@ -163,20 +163,53 @@ class AgentManager:
     def __init__(self, db):
         # Initialize repositories
 
-    async def generate_project_summary(user_id, user_input) -> project_id
-    async def generate_characters(project_id) -> character_ids
-    async def generate_chapters(project_id) -> chapter_ids
-    async def generate_scenes(chapter_id) -> scene_ids
-    async def generate_panels(scene_id) -> panel_ids
-    async def generate_character_profile(character_id) -> biography
-    async def generate_visual_prompt(target_type, target_id) -> prompt
+    async def generate_project_summary(user_id, user_input, user_instructions, mode)
+    async def generate_characters(project_id, num_characters, mode)
+    async def generate_chapters(project_id, num_chapters, mode)
+    async def generate_scenes(chapter_id, num_scenes, mode)
+    async def generate_panels(scene_id, num_panels, mode)
 ```
 
 Key responsibilities:
 1. Load context from database
 2. Execute appropriate agent
-3. Save results to database
-4. Create drafts for versioning
+3. Handle generation modes (direct vs review)
+4. Save results to database or drafts
+
+## Generation Modes
+
+Two modes control how generated content is saved:
+
+### Direct Mode
+- Saves generated content directly to database
+- No user review required
+- Faster workflow for trusted generation
+- Triggered by keywords in user instructions: "auto", "direct"
+
+### Review Mode (Default)
+- Saves to drafts collection first
+- Requires user approval before saving to database
+- Allows feedback and regeneration
+- Default mode for safety
+
+### Mode Selection
+
+Modes are determined from user instructions:
+```python
+class ProjectSettings:
+    def _parse_agent_modes(instructions):
+        # "auto" or "direct" → Direct mode for all
+        # "review characters" → Review mode for characters
+        # "auto generate chapters" → Direct mode for chapters
+```
+
+### Draft Workflow
+
+1. **Generate**: Agent creates content → saved as draft
+2. **Review**: User reviews draft
+3. **Feedback**: User provides feedback (optional)
+4. **Regenerate**: Agent regenerates with feedback (optional)
+5. **Approve**: Draft approved → content saved to database
 
 ## Future Enhancements
 

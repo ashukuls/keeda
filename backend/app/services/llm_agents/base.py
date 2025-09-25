@@ -4,27 +4,12 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, TypeVar, Generic, Type
 from pathlib import Path
 from pydantic import BaseModel, Field
-from enum import Enum
 from openai import AsyncOpenAI
 
 from app.core.config import settings
+from app.schemas.schemas import AgentType
 
 T = TypeVar('T', bound=BaseModel)
-
-
-class AgentType(str, Enum):
-    """Types of agents in the system"""
-    # List generation agents
-    PROJECT_SUMMARY = "project_summary"
-    CHARACTER_LIST = "character_list"
-    CHAPTER_LIST = "chapter_list"
-    SCENE_LIST = "scene_list"
-    PANEL_LIST = "panel_list"
-
-    # Detail enhancement agents
-    CHARACTER_PROFILE = "character_profile"
-    SCENE_SUMMARY = "scene_summary"
-    VISUAL_PROMPT = "visual_prompt"
 
 
 class AgentConfig(BaseModel):
