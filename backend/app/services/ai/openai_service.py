@@ -8,6 +8,7 @@ import logging
 from app.services.ai.base import (
     BaseLLMService,
     LLMProvider,
+    LLMModel,
     GenerationRequest,
     GenerationResponse,
     ChatRequest,
@@ -26,11 +27,11 @@ class OpenAIService(BaseLLMService):
     """OpenAI API service implementation"""
 
     provider = LLMProvider.OPENAI
-    default_model = "gpt-3.5-turbo"
+    default_model = LLMModel.GPT_5_NANO.value
 
     # Model context windows
     MODEL_CONTEXT_WINDOWS = {
-        "gpt-5-nano": 400000,
+        LLMModel.GPT_5_NANO.value: 400000,
     }
 
     def __init__(self, api_key: Optional[str] = None, config: Optional[Dict[str, Any]] = None):
@@ -183,7 +184,7 @@ class OpenAIService(BaseLLMService):
         model = request.model or self.default_model
 
         # Only certain models support function calling
-        if not model.startswith(("gpt-4", "gpt-3.5-turbo")):
+        if not model.startswith(("gpt-5", "gpt-4", "gpt-3.5-turbo")):
             # Fallback to JSON mode
             request.response_format = "json"
             prompt_with_schema = f"{request.prompt}\n\nPlease respond with valid JSON conforming to this schema:\n{json.dumps(schema, indent=2)}"

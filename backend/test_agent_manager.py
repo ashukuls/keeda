@@ -8,6 +8,7 @@ from bson import ObjectId
 from app.services.agent_manager import AgentManager
 from app.schemas.schemas import GenerationMode
 from app.core.config import settings
+from app.core.observability import setup_tracing
 
 # Load environment variables
 load_dotenv()
@@ -225,6 +226,16 @@ async def test_review_mode_workflow():
 
 async def main():
     """Run the tests."""
+    # Initialize tracing FIRST
+    setup_tracing(
+        service_name="keeda-backend",
+        jaeger_host="localhost",
+        jaeger_port=4317,
+        enabled=True
+    )
+    print("✅ Tracing enabled - Check Jaeger UI at http://localhost:16686")
+    print()
+
     # Check for OpenAI API key
     if not settings.OPENAI_API_KEY:
         print("❌ Error: OPENAI_API_KEY not set in environment")

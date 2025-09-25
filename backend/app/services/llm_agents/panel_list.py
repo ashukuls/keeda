@@ -1,6 +1,7 @@
 """Agent for generating panel list from scene context."""
 
 from app.services.llm_agents.base import BaseAgent, AgentType, AgentConfig
+from app.services.ai.base import LLMModel
 from app.schemas.schemas import PanelList
 
 
@@ -11,7 +12,7 @@ class PanelListAgent(BaseAgent[PanelList]):
     name = "Panel List Generator"
     output_schema = PanelList
 
-    config = AgentConfig(model="gpt-4o-mini")
+    config = AgentConfig(model=LLMModel.GPT_5_NANO.value)
 
     async def build_prompt(self) -> str:
         """Build prompt from scene context."""

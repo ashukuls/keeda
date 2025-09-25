@@ -16,10 +16,8 @@ class LLMModel(str, Enum):
     # OpenAI Models
     GPT_5_NANO = "gpt-5-nano"
 
-
     # Ollama Models (local)
     QWEN3 = "qwen3:latest"
-
 
 class GenerationRequest(BaseModel):
     prompt: str

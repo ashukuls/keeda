@@ -1,6 +1,7 @@
 """Agent for generating chapter list from project and characters."""
 
 from app.services.llm_agents.base import BaseAgent, AgentType, AgentConfig
+from app.services.ai.base import LLMModel
 from app.schemas.schemas import ChapterList
 
 
@@ -11,7 +12,7 @@ class ChapterListAgent(BaseAgent[ChapterList]):
     name = "Chapter List Generator"
     output_schema = ChapterList
 
-    config = AgentConfig(model="gpt-4o-mini")
+    config = AgentConfig(model=LLMModel.GPT_5_NANO.value)
 
     async def build_prompt(self) -> str:
         """Build prompt from project and character context."""

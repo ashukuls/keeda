@@ -5,6 +5,7 @@ from bson import ObjectId
 from datetime import datetime, timezone
 
 from app.services.llm_agents.base import AgentContext
+from app.core.observability import trace_method
 from app.services.llm_agents.project_summary import ProjectSummaryAgent
 from app.services.llm_agents.character_list import CharacterListAgent
 from app.services.llm_agents.chapter_list import ChapterListAgent
@@ -83,6 +84,7 @@ class AgentManager:
         self.panel_repo._collection = db.panels
         self.draft_repo._collection = db.drafts
 
+    @trace_method("workflow")
     async def generate_project_summary(
         self,
         user_id: str,
@@ -148,6 +150,7 @@ class AgentManager:
                 "message": "Project summary generated. Please review and approve."
             }
 
+    @trace_method("workflow")
     async def approve_project_draft(self, draft_id: str) -> str:
         """Approve a project draft and create the project."""
         draft = await self.draft_repo.get(draft_id)
@@ -176,6 +179,9 @@ class AgentManager:
         })
 
         return str(created_project.id)
+
+    @trace_method("workflow")
+
 
     async def generate_characters(
         self,
@@ -250,6 +256,9 @@ class AgentManager:
                 "message": f"Generated {len(character_list.characters)} characters. Please review."
             }
 
+    @trace_method("workflow")
+
+
     async def approve_character_draft(self, draft_id: str) -> List[str]:
         """Approve character draft and create characters."""
         draft = await self.draft_repo.get(draft_id)
@@ -272,6 +281,9 @@ class AgentManager:
         await self.draft_repo.update(draft_id, {"status": "selected"})
 
         return character_ids
+
+    @trace_method("workflow")
+
 
     async def generate_chapters(
         self,
@@ -356,6 +368,9 @@ class AgentManager:
                 "data": chapter_list.dict(),
                 "message": f"Generated {len(chapter_list.chapters)} chapters. Please review."
             }
+
+    @trace_method("workflow")
+
 
     async def generate_scenes(
         self,
@@ -450,6 +465,9 @@ class AgentManager:
                 "data": scene_list.dict(),
                 "message": f"Generated {len(scene_list.scenes)} scenes. Please review."
             }
+
+    @trace_method("workflow")
+
 
     async def generate_panels(
         self,
@@ -549,6 +567,9 @@ class AgentManager:
                 "message": f"Generated {len(panel_list.panels)} panels. Please review."
             }
 
+    @trace_method("workflow")
+
+
     async def update_draft(
         self,
         draft_id: str,
@@ -639,6 +660,9 @@ class AgentManager:
             "data": character_list.dict(),
             "message": "Characters regenerated based on feedback."
         }
+
+    @trace_method("workflow")
+
 
     async def get_project_status(self, project_id: str) -> Dict[str, Any]:
         """Get complete status of a project."""

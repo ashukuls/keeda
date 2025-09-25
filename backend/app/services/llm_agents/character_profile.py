@@ -1,6 +1,7 @@
 """Agent for generating detailed character profiles."""
 
 from app.services.llm_agents.base import BaseAgent, AgentType, AgentConfig
+from app.services.ai.base import LLMModel
 from app.schemas.schemas import CharacterProfile
 
 
@@ -11,7 +12,7 @@ class CharacterProfileAgent(BaseAgent[CharacterProfile]):
     name = "Character Profile Generator"
     output_schema = CharacterProfile
 
-    config = AgentConfig(model="gpt-4o-mini")
+    config = AgentConfig(model=LLMModel.GPT_5_NANO.value)
 
     async def build_prompt(self) -> str:
         """Build prompt from character context."""

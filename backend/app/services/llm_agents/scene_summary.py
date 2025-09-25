@@ -1,6 +1,7 @@
 """Agent for generating detailed scene summaries."""
 
 from app.services.llm_agents.base import BaseAgent, AgentType, AgentConfig
+from app.services.ai.base import LLMModel
 from app.schemas.schemas import SceneSummary
 
 
@@ -11,7 +12,7 @@ class SceneSummaryAgent(BaseAgent[SceneSummary]):
     name = "Scene Summary Generator"
     output_schema = SceneSummary
 
-    config = AgentConfig(model="gpt-4o-mini")
+    config = AgentConfig(model=LLMModel.GPT_5_NANO.value)
 
     async def build_prompt(self) -> str:
         """Build prompt from scene and panel context."""

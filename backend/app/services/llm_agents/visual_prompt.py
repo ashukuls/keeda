@@ -1,6 +1,7 @@
 """Agent for generating image generation prompts."""
 
 from app.services.llm_agents.base import BaseAgent, AgentType, AgentConfig
+from app.services.ai.base import LLMModel
 from app.schemas.schemas import ImagePrompt
 
 
@@ -11,7 +12,7 @@ class VisualPromptAgent(BaseAgent[ImagePrompt]):
     name = "Visual Prompt Generator"
     output_schema = ImagePrompt
 
-    config = AgentConfig(model="gpt-4o-mini")
+    config = AgentConfig(model=LLMModel.GPT_5_NANO.value)
 
     async def build_prompt(self) -> str:
         """Build prompt from panel or character context."""

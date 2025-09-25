@@ -1,6 +1,7 @@
 """Agent for generating scene list from chapter context."""
 
 from app.services.llm_agents.base import BaseAgent, AgentType, AgentConfig
+from app.services.ai.base import LLMModel
 from app.schemas.schemas import SceneList
 
 
@@ -11,7 +12,7 @@ class SceneListAgent(BaseAgent[SceneList]):
     name = "Scene List Generator"
     output_schema = SceneList
 
-    config = AgentConfig(model="gpt-4o-mini")
+    config = AgentConfig(model=LLMModel.GPT_5_NANO.value)
 
     async def build_prompt(self) -> str:
         """Build prompt from chapter context."""
