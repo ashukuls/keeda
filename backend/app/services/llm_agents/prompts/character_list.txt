@@ -1,0 +1,21 @@
+Based on this story, create {num_characters} main characters:
+
+Original Idea:
+{user_input}
+
+Project Summary:
+Title: {title}
+Genre: {genre}
+Description: {description}
+
+Generate {num_characters} compelling characters that include:
+1. At least one protagonist
+2. At least one antagonist
+3. Supporting characters
+
+For each character provide:
+- Name: A memorable name
+- Role: Their role in the story (protagonist/antagonist/supporting)
+- Description: A comprehensive description including their personality, motivations, backstory hints, and relationships to other characters
+
+Make sure the characters have interesting conflicts and connections to drive the story.

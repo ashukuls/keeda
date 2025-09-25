@@ -1,0 +1,23 @@
+Create {num_panels} comic panels for this scene:
+
+Chapter {chapter_number}: {chapter_title}
+
+Scene {scene_number}: {scene_title}
+Description: {scene_description}
+
+Available Characters: {character_names}
+
+Generate {num_panels} panels that:
+1. Tell the scene's story visually
+2. Vary shot types for visual interest
+3. Include meaningful dialogue when appropriate
+4. Follow comic book panel flow conventions
+
+For each panel provide:
+- Number: Sequential panel number
+- Shot type: One of (close_up, medium, wide, establishing)
+- Description: Detailed visual description including character positions, expressions, actions, and background
+- Dialogue: Character dialogue if any (include speaker names in the text)
+- Narration: Narrative text boxes if needed
+
+Focus on visual storytelling - show don't tell.

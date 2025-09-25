@@ -1,41 +1,36 @@
-"""Schemas package for request/response models and LLM structured outputs."""
+"""Schemas package."""
 
 from app.schemas.schemas import (
-    # Content schemas for entities
-    ProjectContentSchema,
-    ChapterContentSchema,
-    SceneContentSchema,
-    PanelContentSchema,
-    CharacterContentSchema,
-    LocationContentSchema,
-    DraftContentSchema,
-    ImagePromptSchema,
-    InstructionContentSchema,
+    # List generation schemas
+    ProjectSummary,
+    CharacterList,
+    CharacterListItem,
+    ChapterList,
+    ChapterListItem,
+    SceneList,
+    SceneListItem,
+    PanelList,
+    PanelListItem,
+    DialogueItem,
 
-    # Task output schemas
-    SceneSummarySchema,
-    ChapterOutlineSchema,
-    DialogueGenerationSchema,
-    CharacterProfileSchema,
-    PanelDescriptionSchema,
+    # Detail enhancement schemas
+    CharacterProfile,
+    SceneSummary,
+    ImagePrompt,
 )
 
 __all__ = [
-    # Content schemas
-    "ProjectContentSchema",
-    "ChapterContentSchema",
-    "SceneContentSchema",
-    "PanelContentSchema",
-    "CharacterContentSchema",
-    "LocationContentSchema",
-    "DraftContentSchema",
-    "ImagePromptSchema",
-    "InstructionContentSchema",
-
-    # Task output schemas
-    "SceneSummarySchema",
-    "ChapterOutlineSchema",
-    "DialogueGenerationSchema",
-    "CharacterProfileSchema",
-    "PanelDescriptionSchema",
+    "ProjectSummary",
+    "CharacterList",
+    "CharacterListItem",
+    "ChapterList",
+    "ChapterListItem",
+    "SceneList",
+    "SceneListItem",
+    "PanelList",
+    "PanelListItem",
+    "DialogueItem",
+    "CharacterProfile",
+    "SceneSummary",
+    "ImagePrompt",
 ]

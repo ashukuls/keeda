@@ -1,0 +1,23 @@
+Break down this chapter into {num_scenes} scenes for a graphic novel:
+
+Story Context:
+Title: {title}
+Genre: {genre}
+
+Chapter {chapter_number}: {chapter_title}
+Summary: {chapter_summary}
+
+Available Characters: {character_names}
+
+Generate {num_scenes} visually distinct scenes that:
+1. Progress the chapter's narrative
+2. Vary in location, mood, and pacing
+3. Include character interactions and development
+4. Work well in graphic novel format
+
+For each scene provide:
+- Number: Sequential scene number
+- Title: Brief scene title
+- Description: Detailed description including setting, mood, key events, character interactions, visual elements, and emotional beats
+
+Think cinematically - each scene should be visually interesting.

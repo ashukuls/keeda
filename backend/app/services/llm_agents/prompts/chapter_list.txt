@@ -1,0 +1,21 @@
+Create {num_chapters} chapters for this graphic novel:
+
+Project:
+Title: {title}
+Genre: {genre}
+Description: {description}
+
+Characters:
+{character_text}
+
+Generate {num_chapters} compelling chapters that:
+1. Follow a clear narrative arc
+2. Give each character meaningful development
+3. Build tension toward a satisfying conclusion
+
+For each chapter provide:
+- Chapter number (sequential)
+- Title: A compelling chapter title
+- Summary: 2-3 paragraphs describing the main events, character moments, plot progression, and key turning points
+
+Ensure good pacing and natural story progression.

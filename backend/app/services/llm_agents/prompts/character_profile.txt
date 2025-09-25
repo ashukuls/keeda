@@ -1,0 +1,23 @@
+Create a detailed character profile for:
+
+Character: {name}
+Role: {role}
+Brief: {description}
+
+Story Context:
+Title: {title}
+Genre: {genre}
+Story: {story_description}
+
+Other Characters: {other_characters}
+
+Generate a comprehensive character biography that includes:
+1. Physical appearance and distinctive features
+2. Personality traits and quirks
+3. Backstory and motivations
+4. Character arc and development
+5. Relationships with other characters
+6. Internal conflicts and goals
+7. Visual design notes for the artist
+
+The biography should be 3-4 detailed paragraphs that bring this character to life.

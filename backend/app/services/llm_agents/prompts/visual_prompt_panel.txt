@@ -1,0 +1,23 @@
+Create an image generation prompt for this comic panel:
+
+Genre: {genre}
+Visual Style: {visual_style}
+
+Scene: {scene_title}
+Scene Setting: {scene_description}
+
+Panel {panel_number}:
+Shot Type: {shot_type}
+Description: {panel_description}
+
+Generate:
+1. A detailed image prompt (1-2 paragraphs) that describes:
+   - Exact visual composition and framing
+   - Character appearances and expressions
+   - Environment and lighting
+   - Art style and technique
+   - Color palette and mood
+
+2. A negative prompt listing things to avoid
+
+The prompt should be optimized for AI image generation (Stable Diffusion/DALL-E style).

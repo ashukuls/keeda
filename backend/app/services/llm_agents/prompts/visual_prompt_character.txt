@@ -1,0 +1,21 @@
+Create an image generation prompt for a character reference sheet:
+
+Genre: {genre}
+Visual Style: {visual_style}
+
+Character: {name}
+Role: {role}
+Description: {description}
+Full Profile: {biography}
+
+Generate:
+1. A detailed image prompt for a character reference sheet showing:
+   - Full body view
+   - Face close-up
+   - Costume/clothing details
+   - Distinctive features and accessories
+   - Art style consistent with the genre
+
+2. A negative prompt listing things to avoid
+
+The prompt should create a professional character reference sheet.

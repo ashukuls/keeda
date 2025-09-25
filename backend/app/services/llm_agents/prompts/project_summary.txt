@@ -1,0 +1,11 @@
+You are creating a graphic novel project from the following story idea:
+
+{user_input}
+
+Generate a compelling project summary that includes:
+1. A catchy title for the graphic novel
+2. The genre (e.g., sci-fi, fantasy, noir, etc.)
+3. An expanded description of the story (2-3 paragraphs) that incorporates themes, plot arc, and visual storytelling potential
+
+Make the story compelling and suitable for a graphic novel format.
+Focus on visual storytelling potential.

@@ -1,0 +1,19 @@
+Create a detailed scene summary:
+
+Chapter {chapter_number}: {chapter_title}
+
+Scene {scene_number}: {scene_title}
+Original Description: {scene_description}
+
+Panels:
+{panel_text}
+
+Generate a comprehensive scene summary that:
+1. Describes the setting and atmosphere in detail
+2. Summarizes the key events and action
+3. Captures character emotions and interactions
+4. Notes important visual elements and mood
+5. Explains how this scene advances the story
+6. Includes any subtext or themes
+
+The summary should be 2-3 detailed paragraphs that capture the full scene.

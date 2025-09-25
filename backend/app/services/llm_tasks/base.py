@@ -16,84 +16,63 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound=BaseModel)
 
 
-class TaskType(str, Enum):
-    SCENE_SUMMARY = "scene_summary"
+class AgentType(str, Enum):
+    # List generation agents
+    PROJECT_SUMMARY = "project_summary"
+    CHARACTER_LIST = "character_list"
+    CHAPTER_LIST = "chapter_list"
+    SCENE_LIST = "scene_list"
+    PANEL_LIST = "panel_list"
+
+    # Detail enhancement agents
     CHARACTER_PROFILE = "character_profile"
-    PANEL_DESCRIPTION = "panel_description"
-    DIALOGUE = "dialogue"
-    CHAPTER_OUTLINE = "chapter_outline"
+    SCENE_SUMMARY = "scene_summary"
     VISUAL_PROMPT = "visual_prompt"
 
 
-class TaskPriority(str, Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
-
-
-class OutputMode(str, Enum):
-    TEXT = "text"
-    STRUCTURED = "structured"
-    JSON = "json"
-
-
 class AgentConfig(BaseModel):
-    """Configuration for task agent behavior"""
-    preferred_provider: Optional[LLMProvider] = None
-    preferred_model: Optional[str] = None
+    """Configuration for agent behavior"""
+    provider: Optional[LLMProvider] = None
+    model: Optional[str] = None
 
 
-class TaskParameters(BaseModel):
-    num_variants: int = Field(default=1, ge=1, le=5)
+class AgentParameters(BaseModel):
+    """Runtime parameters for agent execution"""
     temperature: float = Field(default=0.7, ge=0.0, le=1.0)
-    max_tokens: Optional[int] = Field(default=None, ge=1, le=4000)
-    model_override: Optional[str] = None
-    provider_override: Optional[LLMProvider] = None
-    include_context: bool = True
-    style_preset: Optional[str] = None
-    priority: TaskPriority = TaskPriority.MEDIUM
-    output_mode: OutputMode = OutputMode.TEXT
-    output_schema: Optional[Dict[str, Any]] = None
-    strict_schema: bool = False
 
 
-class TaskContext(BaseModel):
+class AgentContext(BaseModel):
+    """Context for agent execution"""
     project_id: str
     user_id: str
-    target_entity_id: Optional[str] = None
-    target_entity_type: Optional[str] = None
-    additional_context: Dict[str, Any] = Field(default_factory=dict)
-    instructions: Optional[List[str]] = Field(default_factory=list)
+    data: Dict[str, Any] = Field(default_factory=dict)  # All context data goes here
 
 
-class TaskResult(BaseModel):
+class AgentResult(BaseModel):
+    """Result from agent execution"""
     success: bool
-    draft_ids: List[str] = Field(default_factory=list)
-    generation_id: Optional[str] = None
+    draft_id: Optional[str] = None
     error: Optional[str] = None
-    execution_time: Optional[float] = None
 
 
-class BaseTask(ABC, Generic[T]):
-    task_type: TaskType
+class BaseAgent(ABC, Generic[T]):
+    """Base class for all LLM agents"""
+    agent_type: AgentType
     name: str
-    description: str
-    output_schema: Optional[Type[BaseModel]] = None
-    agent_config: AgentConfig = AgentConfig()  # Default agent configuration
+    output_schema: Type[BaseModel]
+    config: AgentConfig = AgentConfig()
 
     def __init__(
         self,
         db_client,
         llm_client,
-        context: TaskContext,
-        parameters: TaskParameters = None
+        context: AgentContext,
+        parameters: AgentParameters = None
     ):
         self.db = db_client
         self.llm_client = llm_client
         self.context = context
-        self.parameters = parameters or TaskParameters()
-        self.generation_id: Optional[str] = None
+        self.parameters = parameters or AgentParameters()
 
     def select_model(self) -> tuple[Optional[LLMProvider], Optional[str]]:
         """Select the best model for this task based on agent config and overrides"""
