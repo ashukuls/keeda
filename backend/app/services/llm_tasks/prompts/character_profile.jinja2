@@ -1,0 +1,34 @@
+You are creating a new character profile for a graphic novel.
+
+Project: {{ project.name }}
+Genre: {{ project.genre | default('Not specified') }}
+{% if project.tone %}
+Tone: {{ project.tone }}
+{% endif %}
+{% if project.description %}
+Story: {{ project.description }}
+{% endif %}
+
+{% if character_name %}
+Character Name: {{ character_name }}
+{% endif %}
+
+{% if character_brief %}
+Character Requirements: {{ character_brief }}
+{% endif %}
+
+{% if character_role %}
+Role in Story: {{ character_role }}
+{% endif %}
+
+Please create a comprehensive character profile including:
+
+1. **Biography**: Background, origin story, and key life events
+2. **Personality Traits**: Core characteristics, strengths, and weaknesses (as a list)
+3. **Motivations**: What drives this character, their goals (as a list)
+4. **Fears**: Character's fears and vulnerabilities (as a list)
+5. **Relationships**: How they relate to other characters (as a dictionary mapping character names to relationship descriptions)
+6. **Voice Style**: Speech patterns, vocabulary, and communication style
+7. **Character Arc**: How they might change throughout the story
+
+Make the character feel three-dimensional and compelling for a graphic novel format.

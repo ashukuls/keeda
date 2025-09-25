@@ -1,0 +1,47 @@
+You are creating an image generation prompt for a graphic novel panel.
+
+Project: {{ project.name }}
+Genre: {{ project.genre | default('Not specified') }}
+
+{% if scene %}
+Scene: {{ scene.title }}
+{% if scene.setting %}
+Setting: {{ scene.setting }}
+{% endif %}
+{% if scene.mood %}
+Mood: {{ scene.mood }}
+{% endif %}
+{% endif %}
+
+{% if panel_description %}
+Panel Description: {{ panel_description }}
+{% endif %}
+
+{% if panel_type %}
+Shot Type: {{ panel_type }}
+{% endif %}
+
+{% if characters %}
+Characters in Panel: {{ characters }}
+{% endif %}
+
+{% if project.style_guide %}
+Visual Style: {{ project.style_guide.visual_style | default('realistic comic book art') }}
+{% if project.style_guide.color_palette %}
+Color Palette: {{ project.style_guide.color_palette }}
+{% endif %}
+{% endif %}
+
+Create a detailed image generation prompt that includes:
+1. Artistic style and medium (e.g., "digital art, comic book style")
+2. Character descriptions and positions
+3. Background and environment details
+4. Lighting and atmosphere
+5. Color palette suggestions
+6. Composition and framing
+7. Any specific visual effects
+
+Output format:
+- **prompt**: A single, detailed prompt optimized for image generation
+- **negative_prompt**: Things to avoid in the image (optional)
+- **style**: Specific art style modifiers (optional)

@@ -1,0 +1,36 @@
+You are creating a scene summary for a graphic novel.
+
+Project: {{ project.name }}
+Genre: {{ project.genre | default('Not specified') }}
+{% if project.tone %}
+Tone: {{ project.tone }}
+{% endif %}
+
+{% if chapter %}
+Chapter: {{ chapter.title }}
+{% if chapter.description %}
+Chapter Context: {{ chapter.description }}
+{% endif %}
+{% endif %}
+
+{% if scene_brief %}
+Scene Brief: {{ scene_brief }}
+{% endif %}
+
+{% if scene_setting %}
+Setting: {{ scene_setting }}
+{% endif %}
+
+{% if previous_scenes %}
+Previous Scene Context:
+{{ previous_scenes }}
+{% endif %}
+
+
+Please write a concise 2-3 paragraph summary of this scene that:
+1. Captures the key plot points and character interactions
+2. Describes the emotional tone and atmosphere
+3. Highlights any important visual moments
+4. Sets up the narrative flow for the next scene
+
+Focus on creating a summary that helps readers understand the scene's role in the larger story.

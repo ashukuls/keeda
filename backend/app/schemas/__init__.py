@@ -1,6 +1,7 @@
-"""Schemas for LLM content generation."""
+"""Schemas package for request/response models and LLM structured outputs."""
 
 from app.schemas.schemas import (
+    # Content schemas for entities
     ProjectContentSchema,
     ChapterContentSchema,
     SceneContentSchema,
@@ -10,9 +11,17 @@ from app.schemas.schemas import (
     DraftContentSchema,
     ImagePromptSchema,
     InstructionContentSchema,
+
+    # Task output schemas
+    SceneSummarySchema,
+    ChapterOutlineSchema,
+    DialogueGenerationSchema,
+    CharacterProfileSchema,
+    PanelDescriptionSchema,
 )
 
 __all__ = [
+    # Content schemas
     "ProjectContentSchema",
     "ChapterContentSchema",
     "SceneContentSchema",
@@ -22,4 +31,11 @@ __all__ = [
     "DraftContentSchema",
     "ImagePromptSchema",
     "InstructionContentSchema",
+
+    # Task output schemas
+    "SceneSummarySchema",
+    "ChapterOutlineSchema",
+    "DialogueGenerationSchema",
+    "CharacterProfileSchema",
+    "PanelDescriptionSchema",
 ]
